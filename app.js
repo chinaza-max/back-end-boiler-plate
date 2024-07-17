@@ -28,6 +28,57 @@ class BoilerplateEngine{
       }
     });
   }
+ getTableFormatExample() {
+  return `
+  const tables = [
+    {
+      name: 'User', // Table name
+      columns: [
+        { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true }, // Column definition with type and options
+        { name: 'firstName', type: 'STRING', allowNull: false }, // Column definition
+        { name: 'lastName', type: 'STRING', allowNull: true }, // Column definition
+      ],
+      relationships: [
+        { target: 'Profile', type: 'one-to-one', foreignKey: 'profileId', as: 'profile' } // Relationship definition
+      ]
+    },
+    {
+      name: 'Profile', // Table name
+      columns: [
+        { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true }, // Column definition with type and options
+        { name: 'bio', type: 'STRING', allowNull: true } // Column definition
+      ]
+    }
+  ];
+  
+  Accepted relationship types:
+  - one-to-one
+  - one-to-many
+  - many-to-one
+  - many-to-many
+  
+  Each table object should have the following structure:
+  {
+    name: 'TableName', // Name of the table
+    columns: [
+      { name: 'columnName', type: 'DataType', [primaryKey: true|false], [autoIncrement: true|false], [allowNull: true|false] }, // Define each column with its properties
+      // Add more columns as needed
+    ],
+    relationships: [
+      { target: 'TargetTableName', type: 'RelationshipType', foreignKey: 'ForeignKeyName', as: 'AliasName' }, // Define relationships if any
+      // Add more relationships as needed
+    ]
+  }
+    `;
+  }
+  getAcceptedRelationships() {
+    return [
+      { type: 'one-to-one', description: 'One-to-One relationship' },
+      { type: 'one-to-many', description: 'One-to-Many relationship' },
+      { type: 'many-to-one', description: 'Many-to-One relationship' },
+      { type: 'many-to-many', description: 'Many-to-Many relationship' }
+    ];
+  }
 
   createDefaultFolder(){
 
@@ -38,18 +89,20 @@ class BoilerplateEngine{
   }
 
   validateTables(tables) {
+
     const tableNames = tables.map(table => table.name);
     for (const table of tables) {
       if (table.relationships) {
         for (const rel of table.relationships) {
           if (!tableNames.includes(rel.target)) {
-            console.error(`Error: Relationship target table '${rel.target}' for table '${table.name}' does not exist in the table to be created.`);
+            console.error(`Error: Relationship target table '${rel.target}' for table '${table.name}' does not exist in the table to be created or they are of different case.`);
             return false;
           }
         }
       }
     }
     return true;
+
   }
   createTables(tables) {
 
@@ -206,6 +259,14 @@ const tables = [
   },
   {
     name: 'Profile',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'bio', type: 'STRING', allowNull: true }
+    ]
+  }
+  ,
+  {
+    name: 'Task',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'bio', type: 'STRING', allowNull: true }
