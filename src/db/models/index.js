@@ -12,7 +12,8 @@ User.hasOne(Profile, {
 
 Profile.belongsTo(User, {
   foreignKey: 'profileId'
-});   
+});
+        
 }
 
 async function authenticateConnection(connection) {
@@ -32,7 +33,7 @@ export {
 
 export function init(connection) {
   initUser(connection);
-  initProfile(connection);
+initProfile(connection);
 initTask(connection);
   associate();
   authenticateConnection(connection);

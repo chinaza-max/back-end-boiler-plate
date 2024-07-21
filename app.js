@@ -6,9 +6,10 @@ const path = require('path');
 class BoilerplateEngine{
 
 
-  constructor(absolutePath , defaultFolders){
+  constructor(absolutePath , defaultFolders, routeNames){
     this.absolutePath=absolutePath
     this.defaultFolder=defaultFolders
+    this.routeNames=routeNames
     this.createDefaultFolder();
 
     this.createDefaultFolder=this.createDefaultFolder.bind(this)
@@ -242,6 +243,279 @@ export function init(connection) {
     console.log(`Created index file with relationships: ${indexPath}`);
   }
 
+  createRoutes(table) {
+
+    const routesFolderPath = path.join(this.absolutePath, 'src/routes');
+    if (!fs.existsSync(routesFolderPath)) {
+      fs.mkdirSync(routesFolderPath, { recursive: true });
+      console.log(`Created folder: ${routesFolderPath}`);
+    }
+
+    const indexPath = path.join(routesFolderPath, 'index.js');
+    const indexContent = `
+import express from 'express';
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  return res.status(200).json({
+    status: 200,
+    message: "Welcome to the API",
+    data: {
+      service: "API Service",
+      version: "1.0.0",
+    },
+  });
+});
+
+${this.routeNames.map(route => `import ${route}Routes from './${route}.routes.js';\nrouter.use('/${route}', ${route}Routes);`).join('')}
+
+export default router;
+    `;
+    fs.writeFileSync(indexPath, indexContent.trim());
+    console.log(`Created routes index file: ${indexPath}`);
+
+    this.routeNames.forEach(route => {
+      const routeFilePath = path.join(routesFolderPath, `${route}.routes.js`);
+
+
+      let  routeAction="";
+
+      for (let index = 0; index < table.length; index++) {
+        const element = table[index].name;
+        routeAction+=`
+                
+                // ${element} routes 
+ 
+                this.router.get('/', ${route}Controller.getAll${element.toLowerCase()});
+                this.router.post('/', ${route}Controller.create${element.toLowerCase()});
+                this.router.get('/:id', ${route}Controller.getById${element.toLowerCase()});
+                this.router.put('/:id', ${route}Controller.update${element.toLowerCase()});
+                this.router.delete('/:id', ${route}Controller.delete${element.toLowerCase()});
+                `
+      }
+
+
+      const routeContent = `
+import { Router } from 'express';
+import ${route}Controller from '../controllers/${route}/${route}.controller.js';
+
+class ${route}Routes {
+  constructor() {
+    this.router = Router();
+    this.routes();
+  }
+
+  routes() {
+   
+    ${routeAction}
+  }
+}
+
+export default new ${route}Routes().router;
+      `;
+      fs.writeFileSync(routeFilePath, routeContent.trim());
+      console.log(`Created route file: ${routeFilePath}`);
+    });
+  }
+
+  createControllers(tables) {
+    this.createRoutes(tables);
+
+      
+
+    this.routeNames.forEach(routeName => {
+      const controllerFolderPath = path.join(this.absolutePath, `src/controllers/${routeName.toLowerCase()}`);
+      if (!fs.existsSync(controllerFolderPath)) {
+        fs.mkdirSync(controllerFolderPath, { recursive: true });
+      }
+
+      let controllers=''
+      for (let index = 0; index < tables.length; index++) {
+        const element = tables[index].name;
+
+        controllers+=` async getAll${element.toLowerCase()}(req, res, next) {
+                try {
+                  const response = await ${routeName}Service.getAll();
+                  return res.status(200).json({ status: 200, data: response });
+                } catch (error) {
+                  return next(error);
+                }
+          }
+
+
+          async create${element.toLowerCase()}(req, res, next) {
+                try {
+                  const response = await ${routeName}Service.getAll();
+                  return res.status(200).json({ status: 200, data: response });
+                } catch (error) {
+                  return next(error);
+                }
+          }
+
+          async getById${element.toLowerCase()}(req, res, next) {
+                try {
+                  const response = await ${routeName}Service.getAll();
+                  return res.status(200).json({ status: 200, data: response });
+                } catch (error) {
+                  return next(error);
+                }
+          }
+
+          async update${element.toLowerCase()}(req, res, next) {
+                try {
+                  const response = await ${routeName}Service.getAll();
+                  return res.status(200).json({ status: 200, data: response });
+                } catch (error) {
+                  return next(error);
+                }
+          }
+
+          async delete${element.toLowerCase()}(req, res, next) {
+                try {
+                  const response = await ${routeName}Service.getAll();
+                  return res.status(200).json({ status: 200, data: response });
+                } catch (error) {
+                  return next(error);
+                }
+          }
+    `
+      }
+
+      const controllerFilePath = path.join(controllerFolderPath, `${routeName.toLowerCase()}.controller.js`);
+
+      const controllerContent = `
+
+        import ${routeName}Service from '../../service/${routeName.toLowerCase()}.service.js';
+
+        class ${routeName}Controller {
+          ${controllers}
+        }
+        
+        export default new ${routeName}Controller();
+
+      `
+      fs.writeFileSync(controllerFilePath, controllerContent.trim());
+      console.log(`Created controller file: ${controllerFilePath}`);
+  
+
+    });
+
+
+
+
+  }
+
+  createServices(tables) {
+    const serviceFolderPath = path.join(this.absolutePath, 'src/service');
+    if (!fs.existsSync(serviceFolderPath)) {
+      fs.mkdirSync(serviceFolderPath, { recursive: true });
+      console.log(`Created folder: ${serviceFolderPath}`);
+    }
+
+    tables.forEach(table => {
+      const serviceFilePath = path.join(serviceFolderPath, `${table.name.toLowerCase()}.service.js`);
+      const serviceContent = `
+import { ${table.name} } from '../db/models';
+
+class ${table.name}Service {
+  async getAll() {
+    return await ${table.name}.findAll();
+  }
+
+  async create(data) {
+    return await ${table.name}.create(data);
+  }
+
+  async getById(id) {
+    return await ${table.name}.findByPk(id);
+  }
+
+  async update(id, data) {
+    const record = await ${table.name}.findByPk(id);
+    if (record) {
+      return await record.update(data);
+    }
+    return null;
+  }
+
+  async delete(id) {
+    const record = await ${table.name}.findByPk(id);
+    if (record) {
+      return await record.destroy();
+    }
+    return null;
+  }
+}
+
+export default new ${table.name}Service();
+      `;
+      fs.writeFileSync(serviceFilePath, serviceContent.trim());
+      console.log(`Created service file: ${serviceFilePath}`);
+    });
+  }
+
+  createUtils(tables) {
+    const utilsFolderPath = path.join(this.absolutePath, 'src/utils');
+    if (!fs.existsSync(utilsFolderPath)) {
+      fs.mkdirSync(utilsFolderPath, { recursive: true });
+      console.log(`Created folder: ${utilsFolderPath}`);
+    }
+
+    tables.forEach(table => {
+      const utilFilePath = path.join(utilsFolderPath, `${table.name.toLowerCase()}.util.js`);
+      const validationFields = table.columns.map(col => {
+        let type;
+        switch (col.type) {
+          case 'STRING':
+            type = 'Joi.string()';
+            break;
+          case 'INTEGER':
+            type = 'Joi.number().integer()';
+            break;
+          case 'DATE':
+            type = 'Joi.date()';
+            break;
+          default:
+            type = 'Joi.any()';
+        }
+        if (!col.allowNull) type += '.required()';
+        return `${col.name}: ${type}`;
+      }).join(',\n    ');
+
+      const utilContent = `
+import Joi from 'joi';
+
+class ${table.name}Util {
+  validateCreate = Joi.object({
+    ${validationFields}
+  });
+
+  validateUpdate = Joi.object({
+    ${validationFields}
+  });
+}
+
+export default new ${table.name}Util();
+      `;
+      fs.writeFileSync(utilFilePath, utilContent.trim());
+      console.log(`Created util file: ${utilFilePath}`);
+    });
+  }
+  
+/*
+  async run() {
+    const tables = [
+      { name: 'Users', columns: [ { name: 'email', type: 'STRING', allowNull: false } ], relationships: [] },
+      { name: 'Posts', columns: [ { name: 'title', type: 'STRING', allowNull: false }, { name: 'content', type: 'TEXT', allowNull: false } ], relationships: [] },
+      { name: 'Comments', columns: [ { name: 'content', type: 'TEXT', allowNull: false }, { name: 'postId', type: 'INTEGER', allowNull: false } ], relationships: [ { type: 'belongs-to', target: 'Posts', foreignKey: 'postId', dataType: 'INTEGER' } ] }
+    ];
+
+    //await this.createTables(tables);
+    this.createRoutes();
+    this.createControllers(tables);
+  }*/
+
+
 }
 
 
@@ -275,7 +549,15 @@ const tables = [
 ];
 
 const requiredFolders = ['routes', 'controllers', 'service', 'middleware', 'db', 'utils'];
-const boilerplate = new BoilerplateEngine(path.join(__dirname) , requiredFolders)
+const routeNames= ["users", "auth", "admin"];
+
+const boilerplate = new BoilerplateEngine(path.join(__dirname) , requiredFolders, routeNames)
+
 
 boilerplate.createTables(tables);
+
+boilerplate.createControllers(tables);
+
+//boilerplate.createControllers(tables);
+
 
