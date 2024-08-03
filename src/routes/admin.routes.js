@@ -10,7 +10,7 @@ class adminRoutes {
   routes() {
    
     
-         
+                
                 // User routes 
  
                 this.router.get('/', adminController.getAlluser);

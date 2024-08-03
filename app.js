@@ -321,7 +321,6 @@ export default new ${route}Routes().router;
   createControllers(tables) {
     this.createRoutes(tables);
 
-      
 
     this.routeNames.forEach(routeName => {
       const controllerFolderPath = path.join(this.absolutePath, `src/controllers/${routeName.toLowerCase()}`);
@@ -335,7 +334,7 @@ export default new ${route}Routes().router;
 
         controllers+=` async getAll${element.toLowerCase()}(req, res, next) {
                 try {
-                  const response = await ${routeName}Service.getAll();
+                  const response = await ${routeName}Service.handleGetAll${element.toLowerCase()}();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -345,7 +344,7 @@ export default new ${route}Routes().router;
 
           async create${element.toLowerCase()}(req, res, next) {
                 try {
-                  const response = await ${routeName}Service.getAll();
+                  const response = await ${routeName}Service.handleCreate${element.toLowerCase()}();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -354,7 +353,7 @@ export default new ${route}Routes().router;
 
           async getById${element.toLowerCase()}(req, res, next) {
                 try {
-                  const response = await ${routeName}Service.getAll();
+                  const response = await ${routeName}Service.handleGetById${element.toLowerCase()}();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -363,7 +362,7 @@ export default new ${route}Routes().router;
 
           async update${element.toLowerCase()}(req, res, next) {
                 try {
-                  const response = await ${routeName}Service.getAll();
+                  const response = await ${routeName}Service.handleUpdate${element.toLowerCase()}();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -372,7 +371,7 @@ export default new ${route}Routes().router;
 
           async delete${element.toLowerCase()}(req, res, next) {
                 try {
-                  const response = await ${routeName}Service.getAll();
+                  const response = await ${routeName}Service.handleDelete${element.toLowerCase()}();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -397,7 +396,6 @@ export default new ${route}Routes().router;
       fs.writeFileSync(controllerFilePath, controllerContent.trim());
       console.log(`Created controller file: ${controllerFilePath}`);
   
-
     });
 
 
@@ -406,12 +404,94 @@ export default new ${route}Routes().router;
   }
 
   createServices(tables) {
-    const serviceFolderPath = path.join(this.absolutePath, 'src/service');
+    const serviceFolderPath = path.join(this.absolutePath, 'src/services');
     if (!fs.existsSync(serviceFolderPath)) {
       fs.mkdirSync(serviceFolderPath, { recursive: true });
       console.log(`Created folder: ${serviceFolderPath}`);
     }
 
+    this.routeNames.forEach(routeName => {
+      const serviceFolderPath = path.join(this.absolutePath, `src/services/${routeName.toLowerCase()}`);
+      if (!fs.existsSync(serviceFolderPath)) {
+        fs.mkdirSync(serviceFolderPath, { recursive: true });
+      }
+
+      let services=''
+      const serviceFilePath = path.join(serviceFolderPath, `${routeName.toLowerCase()}.service.js`);
+
+      for (let index = 0; index < tables.length; index++) {
+        const element = tables[index].name;
+
+        services+=` async handleGetAll${element.toLowerCase()}() {
+                try {
+                  return await ${element}Model.findAll();
+                } catch (error) {
+                new ServerError(error.name,error.parent );
+                }
+          }
+          async handleCreate${element.toLowerCase()}(data) {
+                try {
+                      return await ${element}Model.create(data);
+                } catch (error) {
+                  new ServerError(error.name,error.parent );
+                }
+          }
+
+          async handleGetById${element.toLowerCase()}(data) {
+                try {
+                    return await ${element}Model.findByPk(id);
+                } catch (error) {
+                  new ServerError(error.name,error.parent );
+                }
+          }
+
+          async handleUpdate${element.toLowerCase()}(data) {
+                try {
+                      const record = await ${element}Model.findByPk(id);
+                } catch (error) {
+                  new ServerError(error.name,error.parent );
+                }
+          }
+
+          async handleDelete${element.toLowerCase()}(data) {
+                try {
+                  const record = await ${element}Model.findByPk(id);
+                } catch (error) {
+                  new ServerError(error.name,error.parent );
+                }
+          }
+    `
+      }
+
+      let database=''
+      let databaseModel=''
+
+      for (let index = 0; index < tables.length; index++) {
+        const element = tables[index].name;
+        database+=`${element},`
+        databaseModel+=`${element}Model = ${element};`
+      }
+
+      const serviceContent = `
+          import { ${database} } from '../../db/models';
+
+        class ${routeName}Service {
+          ${databaseModel}
+
+          ${services}
+        }
+
+       
+      export default new ${routeName}Service();
+
+      `
+
+      fs.writeFileSync(serviceFilePath, serviceContent.trim());
+      console.log(`Created service file: ${serviceFilePath}`);
+  
+    })
+
+    /*
     tables.forEach(table => {
       const serviceFilePath = path.join(serviceFolderPath, `${table.name.toLowerCase()}.service.js`);
       const serviceContent = `
@@ -452,6 +532,9 @@ export default new ${table.name}Service();
       fs.writeFileSync(serviceFilePath, serviceContent.trim());
       console.log(`Created service file: ${serviceFilePath}`);
     });
+*/
+
+
   }
 
   createUtils(tables) {
@@ -548,7 +631,7 @@ const tables = [
   }
 ];
 
-const requiredFolders = ['routes', 'controllers', 'service', 'middleware', 'db', 'utils'];
+const requiredFolders = ['routes', 'controllers', 'services', 'middleware', 'db', 'utils'];
 const routeNames= ["users", "auth", "admin"];
 
 const boilerplate = new BoilerplateEngine(path.join(__dirname) , requiredFolders, routeNames)
@@ -558,6 +641,8 @@ boilerplate.createTables(tables);
 
 boilerplate.createControllers(tables);
 
-//boilerplate.createControllers(tables);
+boilerplate.createServices(tables);
+boilerplate.createUtils(tables);
+
 
 

@@ -3,7 +3,7 @@ import usersService from '../../service/users.service.js';
         class usersController {
            async getAlluser(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetAlluser();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -13,7 +13,7 @@ import usersService from '../../service/users.service.js';
 
           async createuser(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleCreateuser();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -22,7 +22,7 @@ import usersService from '../../service/users.service.js';
 
           async getByIduser(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetByIduser();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -31,7 +31,7 @@ import usersService from '../../service/users.service.js';
 
           async updateuser(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleUpdateuser();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -40,7 +40,7 @@ import usersService from '../../service/users.service.js';
 
           async deleteuser(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleDeleteuser();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -48,7 +48,7 @@ import usersService from '../../service/users.service.js';
           }
      async getAllprofile(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetAllprofile();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -58,7 +58,7 @@ import usersService from '../../service/users.service.js';
 
           async createprofile(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleCreateprofile();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -67,7 +67,7 @@ import usersService from '../../service/users.service.js';
 
           async getByIdprofile(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetByIdprofile();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -76,7 +76,7 @@ import usersService from '../../service/users.service.js';
 
           async updateprofile(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleUpdateprofile();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -85,7 +85,7 @@ import usersService from '../../service/users.service.js';
 
           async deleteprofile(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleDeleteprofile();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -93,7 +93,7 @@ import usersService from '../../service/users.service.js';
           }
      async getAlltask(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetAlltask();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -103,7 +103,7 @@ import usersService from '../../service/users.service.js';
 
           async createtask(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleCreatetask();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -112,7 +112,7 @@ import usersService from '../../service/users.service.js';
 
           async getByIdtask(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleGetByIdtask();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -121,7 +121,7 @@ import usersService from '../../service/users.service.js';
 
           async updatetask(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleUpdatetask();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
@@ -130,7 +130,7 @@ import usersService from '../../service/users.service.js';
 
           async deletetask(req, res, next) {
                 try {
-                  const response = await usersService.getAll();
+                  const response = await usersService.handleDeletetask();
                   return res.status(200).json({ status: 200, data: response });
                 } catch (error) {
                   return next(error);
